@@ -127,30 +127,30 @@ function zoom (d) {
             "translate(" + width / 2 + "," + height / 2 
             + ")scale(" + scale  
             + ")translate(" + -x + "," + -y + ")" )
+
+
+
+    // fade edges
+    var defs = svg.append("svg:defs");
+    var gradient = defs.append("svg:radialGradient")
+        .attr("id", "edgeFade");
+    gradient.append("svg:stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "white")
+        .attr("stop-opacity", 1);
+    gradient.append("svg:stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "white")
+        .attr("stop-opacity", 0);
+    var mask = defs.append("svg:mask")
+        .attr("id", "Mask");
+    mask.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "url(#edgeFade)");
 };
-
-
-// Edge Fades
-var defs = svg.append("svg:defs");
-var gradient = defs.append("svg:radialGradient")
-    .attr("id", "edgeFade");
-gradient.append("svg:stop")
-    .attr("offset", "0%")
-    .attr("stop-color", "white")
-    .attr("stop-opacity", 1);
-gradient.append("svg:stop")
-    .attr("offset", "100%")
-    .attr("stop-color", "white")
-    .attr("stop-opacity", 0);
-var mask = defs.append("svg:mask")
-    .attr("id", "Mask");
-mask.append("rect")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("width", width)
-    .attr("height", height)
-    .attr("fill", "url(#edgeFade)");
-
 
 loadMenu();
 loadStates();
