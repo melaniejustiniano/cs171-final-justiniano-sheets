@@ -1,3 +1,14 @@
+body {
+    text-align: center;
+}
+
+.genre-label {
+    font-family: 'CodeProDemoRegular';
+}
+.genre-select {
+    font-family: 'CodeProLightDemoRegular';
+}
+
 .country{
     fill: #999999;
     stroke: white;

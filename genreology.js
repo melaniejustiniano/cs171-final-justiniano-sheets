@@ -13,14 +13,14 @@ var slider = d3.select("#slider").append("svg").attr({
     height: 100 + margin.top + margin.bottom
 });
 
-var canvas = d3.select("#vis").append("svg").attr({
+var svg = d3.select("#vis").append("svg").attr({
     width: width + margin.left + margin.right,
     height: height + margin.top + margin.bottom
-    })
+})
 
-var svg = canvas.append("g").attr({
-        transform: "translate(" + margin.left + "," + margin.top + ")"
-    });
+var vis = svg.append("g").attr({
+    transform: "translate(" + margin.left + "," + margin.top + ")"
+});
 
 var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection);
@@ -33,7 +33,7 @@ function loadStates () {
 
         var usMap = topojson.feature(data,data.objects.states).features
 
-        svg.attr("class", "country")
+        vis.attr("class", "country")
             .selectAll(".country")
             .data(usMap).enter()
             .append("path")
@@ -90,34 +90,58 @@ function zoom (d) {
     var x, y, scale;
 
     if (d && centered !== d) {
-
         var centroid = path.centroid(d);
         x = centroid[0];
         y = centroid[1];
         scale = 3;
 
         centered = d;
+
+        svg.attr("mask", "url(#Mask)");
     }
 
     else {
-
         x = width / 2 ;
         y = height / 2;
         scale = 1;
         centered = null;
+
+        svg.attr("mask", "null");
     }
  
-    svg.selectAll("path")
+    vis.selectAll("path")
         .classed("active", centered && function (d) { 
             return d === centered });
 
-    svg.transition()
+    vis.transition()
         .duration(500)
         .attr("transform",
             "translate(" + width / 2 + "," + height / 2 
             + ")scale(" + scale  
             + ")translate(" + -x + "," + -y + ")" )
 };
+
+
+// Edge Fades
+var defs = svg.append("svg:defs");
+var gradient = defs.append("svg:radialGradient")
+    .attr("id", "edgeFade");
+gradient.append("svg:stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "white")
+    .attr("stop-opacity", 1);
+gradient.append("svg:stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "white")
+    .attr("stop-opacity", 0);
+var mask = defs.append("svg:mask")
+    .attr("id", "Mask");
+mask.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", width)
+    .attr("height", height)
+    .attr("fill", "url(#edgeFade)");
 
 
 loadMenu();
