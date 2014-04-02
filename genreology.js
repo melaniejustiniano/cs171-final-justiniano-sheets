@@ -44,7 +44,7 @@ function loadStates () {
 
 };
 
-var genres = [{genre:"grunge"}];
+var genres = [ {genre: "name" } ];
 
 function loadData () {
 
@@ -56,7 +56,7 @@ function loadMenu (){
 
     d3.select("select")
         .on("change", loadBands)
-        .selectAll("option")
+    .selectAll("option")
         .data(genres)
         .enter()
         .append("option")
@@ -64,9 +64,9 @@ function loadMenu (){
 
 }
 
-function loadBands (data) {
-
-    // if no year is given, choose first year genre originated (by band)
+function loadBands (genre, year) {
+    // initialize bands with first genre
+    if (!genre) genre = genres[0];
 
     // create circles on the maps representing bands
 
@@ -75,9 +75,10 @@ function loadBands (data) {
 
 
 function updateYear (year) {
-    // update map to show current bands per that year
-}
+    // add bands from that year
 
+    // change the color of the bands from the previous year
+}
 
 
 function createSlider (genre) {
@@ -121,3 +122,4 @@ function zoom (d) {
 
 loadMenu();
 loadStates();
+loadBands();
