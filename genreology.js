@@ -74,7 +74,7 @@ function loadMenu (){
 
 function loadBands (genre) {
     // initialize bands with first genre
-    if (!genre) genre = genres[0];
+    // if (!genre) genre = genres[0];
 
     // create circles on the maps representing bands
 
@@ -151,6 +151,48 @@ function zoom (d) {
         .attr("height", height)
         .attr("fill", "url(#edgeFade)");
 };
+
+// dropdown list
+// TODO update so list is actual list of d3 data bound elements
+d3.selectAll(".genre-select .dropdown li")
+    .on("click", function() {
+        d3.event.stopPropagation();
+        
+        var newSelectText = d3.select(this).text(),
+            oldSelectText = d3.select(".genre-select .selected").text();
+
+        d3.select(".genre-select").classed('active', false); 
+        d3.select(".genre-select .selected").text(newSelectText);
+        d3.select(this).text(oldSelectText);
+
+        // TODO Sort
+        sortList(d3.select(".genre-select .dropdown"));
+    });
+d3.select(".genre-select")
+    .on("click", function() {
+        d3.event.stopPropagation();
+        d3.select(this).classed('active', !d3.select(this).classed('active'));
+    });
+
+d3.select("body")
+    .on("click", function() {
+        d3.select(".genre-select").classed('active', false);
+    });
+
+// Need to update to track actual data...
+function sortList(ul) {
+    var lis = ul.selectAll("li")[0];
+    var liTexts = [];
+    for (var i = 0; i < lis.length; i++)
+        liTexts.push(d3.select(lis[i]).text());
+
+    liTexts.sort();
+
+    var liElements = ul.selectAll("li")
+        .text(function(li, i) {
+            return liTexts[i];
+        });
+}
 
 loadMenu();
 loadStates();

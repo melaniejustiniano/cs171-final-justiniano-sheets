@@ -5,7 +5,7 @@ body {
 .genre-select-wrapper {
     margin-top: 30px;
 }
-.genre-label, .genre-select, .genre-select ul, .genre-select .arrow {
+.genre-label, .genre-select {
     display: inline-block;
     font-size: 42px;
     line-height: 42px;
@@ -14,24 +14,63 @@ body {
     font-family: 'CodeProDemoRegular';
 }
 .genre-select {
-    padding: 2px 4px;
+    position: relative;
+    padding: 2px 33px 0px 8px;
+    margin: 0 auto;
     border: 1px solid #000000;
     border-radius: 8px;
+
+    cursor: pointer;
+    font-family: 'CodeProLightDemoRegular';
+
+    background-image: url("arrow-down.png");
+    background-size: auto 16px;
+    background-position: right 8px center;
+    background-repeat: no-repeat;
 }
-.genre-select ul {
+.genre-select .dropdown {
     list-style: none;
+    font-size: 20px;
+    line-height: 20px;
+
+    position: absolute;
+    top: 100%;
+
+    /* Set to same width as button */
+    left: 0;
+    right: 0;
     padding: 0;
     margin: 0;
-}
-.genre-select ul li {
-    font-family: 'CodeProLightDemoRegular';
+    border-radius: 8px;
+    background-color: #D3D3D3;
+    margin-top: 8px;
+
     display: none;
 }
-.genre-select ul li.selected {
-    display: inline;
+.genre-select .dropdown li {
+    display: block;
+    padding: 8px 0;
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
 }
-.genre-select .arrow img {
-    width: 24px;
+.genre-select .dropdown li:first-child {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+.genre-select .dropdown li:last-child {
+    border-bottom: 1px solid #000;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+.genre-select .dropdown li:hover {
+    background-color: white;
+}
+.genre-select.active .dropdown {
+    display: block;
+}
+.genre-select.active:after {
+    background-image: url("arrow-up.png");  
 }
 
 .country{
