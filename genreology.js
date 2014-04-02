@@ -44,10 +44,18 @@ function loadStates () {
 
 };
 
-var genres = [ {genre: "name" } ];
+var dataSet = [ {genre: "name" } ];
 
 function loadData () {
 
+    var dataformat = [ {genre: "name",
+                years: [ {
+                    year: 1900,
+                    bands: [ {
+                        band: "name",
+                        location: [0, 0] } ] 
+                } ]
+            } ];
 
 }
 
@@ -57,14 +65,14 @@ function loadMenu (){
     d3.select("select")
         .on("change", loadBands)
     .selectAll("option")
-        .data(genres)
+        .data(dataSet)
         .enter()
         .append("option")
         .text( function (d) { return d.genre; })
 
 }
 
-function loadBands (genre, year) {
+function loadBands (genre) {
     // initialize bands with first genre
     if (!genre) genre = genres[0];
 
