@@ -44,18 +44,44 @@ function loadStates () {
 
 };
 
-var dataSet = [ {genre: "name" } ];
+var dataSet = [ ];
 
 function loadData () {
 
-    var dataformat = [ {genre: "name",
-                years: [ {
-                    year: 1900,
-                    bands: [ {
-                        band: "name",
-                        location: [0, 0] } ] 
-                } ]
-            } ];
+    d3.json("data/artistsByGenre.json", function(error, data) {
+    
+        data.forEach( function (d) {
+
+            var genre = { genre: d.name, years: [] };
+            var years = { };
+
+            d.artists.forEach ( function (artist) {
+
+                var year = artist.years_active[0].start;
+                var name = artist.name;
+                var location = artist.artist_location.location;
+
+                if (years[year]) {
+                    years[year].push( {artist : name, location: location} )
+                }
+                else years[year] = [ {artist : name, location: location} ]
+                
+            })
+
+            for (var year in years) {
+                genre.years.push({year: year, bands: years[year]})
+            }
+
+            dataSet.push(genre);
+
+        });
+
+    loadMenu();
+    createSlider();
+    loadBands();
+
+    });
+
 
 }
 
@@ -74,7 +100,7 @@ function loadMenu (){
 
 function loadBands (genre) {
     // initialize bands with first genre
-    // if (!genre) genre = genres[0];
+    // if (!genre) genre = dataSet[0];
 
     // create circles on the maps representing bands
 
@@ -84,13 +110,58 @@ function loadBands (genre) {
 
 function updateYear (year) {
     // add bands from that year
-
+    
     // change the color of the bands from the previous year
 }
 
 
 function createSlider (genre) {
     // create line graph of bands per year to use as slider
+    if (!genre) genre = dataSet[0];
+
+    var svg = slider.append("g").attr({
+        transform: "translate(" + margin.left + "," + margin.top + ")"
+    });
+
+    var x = d3.scale.linear()
+        .range([0, width - 100]);
+
+    var y = d3.scale.linear()
+        .range([50, 0]);
+
+    // x.domain(d3.extent(genre.years, function (d) { console.log(d.year); d.year }));
+    // y.domain(d3.extent(genre.years, function (d) { d.bands.length }));
+
+    x.domain([1979,2009]);
+    y.domain([0,8]);
+
+    xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var line = d3.svg.line()
+        .interpolate("cardinal")
+        .x( function (d) { console.log(x(d.year)); return x(+d.year); } )
+        .y( function (d) { return y(d.bands.length); } );
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + 60 + ")" )
+        .call(xAxis);
+
+    svg.selectAll("circle")
+        .data(genre.years)
+        .enter()
+        .append("circle")
+        .attr("r", 2)
+        .attr("cx", function (d) {return x(d.year)})
+        .attr("cy", function (d) { return y(d.bands.length)})
+        .on("click", updateYear);
+
+    svg.append("path")
+        .datum(genre.years)
+        .attr("class", "line")
+        .attr("d", line);
 
 }
 
@@ -194,6 +265,5 @@ function sortList(ul) {
         });
 }
 
-loadMenu();
 loadStates();
-loadBands();
+loadData();

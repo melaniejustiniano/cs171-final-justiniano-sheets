@@ -89,6 +89,23 @@ text {
     font-size: small;
 }
 
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
 .band{
     fill: lightgrey;
     opacity: .7;
