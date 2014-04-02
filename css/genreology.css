@@ -1,0 +1,84 @@
+body {
+    text-align: center;
+}
+
+.genre-select-wrapper {
+    margin-top: 30px;
+}
+.genre-label, .genre-select, .genre-select ul, .genre-select .arrow {
+    display: inline-block;
+    font-size: 42px;
+    line-height: 42px;
+}
+.genre-label {
+    font-family: 'CodeProDemoRegular';
+}
+.genre-select {
+    padding: 2px 4px;
+    border: 1px solid #000000;
+    border-radius: 8px;
+}
+.genre-select ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.genre-select ul li {
+    font-family: 'CodeProLightDemoRegular';
+    display: none;
+}
+.genre-select ul li.selected {
+    display: inline;
+}
+.genre-select .arrow img {
+    width: 24px;
+}
+
+.country{
+    fill: transparent;
+    stroke: #999999;
+    stroke-width: 2px;
+}
+
+.state.active{
+    fill: #aeeeee;
+}
+
+text {
+    text-align: center;
+    font-family: Tahoma;
+    font-size: small;
+}
+
+.band{
+    fill: lightgrey;
+    opacity: .7;
+}
+
+#tooltip {
+    position: absolute;
+    width: 100px;
+    height: auto;
+    padding: 10px;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+#tooltip.hidden {
+    display: none;
+}
+
+#tooltip p {
+    margin: 0;
+    text-align: center;
+    font-family: Tahoma;
+    font-size: small;
+}
+
+
