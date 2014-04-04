@@ -21,7 +21,7 @@ var sliderMargin = {
     top: 30,
     right: 10,
     bottom: 20,
-    left: 10
+    left: 30
 };
 
 var sliderWidth = 900 - sliderMargin.left - sliderMargin.right;
@@ -257,7 +257,7 @@ function createSlider(genre) {
         });
 
     var handleLabel = handle.append("text")
-        .text("1994")
+        .text( genre.years[0].year )
         .attr("transform", "translate(0," + (sliderHeight - 10) + ")");
 
     // http://bl.ocks.org/mbostock/6452972
@@ -266,8 +266,9 @@ function createSlider(genre) {
         brush.extent([value, value]);
 
         // update slider
-        console.log(value);
-        handle.attr("transform", "translate(" + xScale(value) + ",0)");
+        handle.attr("transform", "translate(" + xScale(value) + ",0)")
+
+        handleLabel.text(value);
 
         innerVisClipPath
             .attr("width", sliderWidth - xScale(value))
@@ -283,7 +284,6 @@ function createSlider(genre) {
 
 function zoom (d) {
     var x, y, scale;
-    console.log(this.getBBox());
 
     if (d && centered !== d) {
         var centroid = path.centroid(d);
