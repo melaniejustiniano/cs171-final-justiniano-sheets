@@ -8,11 +8,6 @@ var margin = {
 var width = 900 - margin.left - margin.right;
 var height = 500 - margin.bottom - margin.top;
 
-var slider = d3.select("#slider").append("svg").attr({
-    width: width + margin.left + margin.right,
-    height: 100 + margin.top + margin.bottom
-});
-
 var svg = d3.select("#vis").append("svg").attr({
     width: width + margin.left + margin.right,
     height: height + margin.top + margin.bottom
@@ -20,6 +15,25 @@ var svg = d3.select("#vis").append("svg").attr({
 
 var vis = svg.append("g").attr({
     transform: "translate(" + margin.left + "," + margin.top + ")"
+});
+
+var sliderMargin = {
+    top: 30,
+    right: 10,
+    bottom: 20,
+    left: 10
+};
+
+var sliderWidth = 900 - sliderMargin.left - sliderMargin.right;
+var sliderHeight = 200 - sliderMargin.bottom - sliderMargin.top;
+
+var sliderSvg = d3.select("#slider").append("svg").attr({
+    width: sliderWidth + sliderMargin.left + sliderMargin.right,
+    height: sliderHeight + sliderMargin.top + sliderMargin.bottom
+});
+
+var sliderVis = sliderSvg.append("g").attr({
+    transform: "translate(" + sliderMargin.left + "," + sliderMargin.top + ")"
 });
 
 var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
@@ -44,52 +58,50 @@ function loadStates () {
 
 };
 
-var dataSet = [ ];
+var dataSet = [];
 
 function loadData () {
-
     d3.json("data/artistsByGenre.json", function(error, data) {
-    
-        data.forEach( function (d) {
+        data.forEach(function (d) {
+            var genre = { genre: d.name, years: [], yearRange: [], artistCountRange: [] },
+                years = {};
 
-            var genre = { genre: d.name, years: [] };
-            var years = { };
+            // TODO: sorted by year already? expedite this?
+            d.artists.forEach(function (artist) {
+                var year = artist.years_active[0].start,
+                    name = artist.name,
+                    location = artist.artist_location.location;
 
-            d.artists.forEach ( function (artist) {
+                if (years[year])
+                    years[year].push({ artist : name, location: location });
+                else 
+                    years[year] = [{ artist : name, location: location }];
+            })
+            for (var year in years)
+                genre.years.push({ year: year, artists: years[year] })
 
-                var year = artist.years_active[0].start;
-                var name = artist.name;
-                var location = artist.artist_location.location;
-
-                if (years[year]) {
-                    years[year].push( {artist : name, location: location} )
-                }
-                else years[year] = [ {artist : name, location: location} ]
-                
+            // precompute ranges for domains
+            genre.yearRange = d3.extent(genre.years, function(y) {
+                return y.year
+            });
+            genre.artistCountRange = d3.extent(genre.years, function(y) {
+                return y.artists.length;
             })
 
-            for (var year in years) {
-                genre.years.push({year: year, bands: years[year]})
-            }
-
             dataSet.push(genre);
-
         });
 
-    loadMenu();
-    createSlider();
-    loadBands();
-
+        loadMenu();
+        createSlider();
+        loadArtists();
     });
-
-
 }
 
 // populate drop down menu with genres
 function loadMenu (){
 
     d3.select("select")
-        .on("change", loadBands)
+        .on("change", loadArtists)
     .selectAll("option")
         .data(dataSet)
         .enter()
@@ -98,85 +110,193 @@ function loadMenu (){
 
 }
 
-function loadBands (genre) {
-    // initialize bands with first genre
+function loadArtists(genre) {
+    // initialize artists with first genre
     // if (!genre) genre = dataSet[0];
 
-    // create circles on the maps representing bands
+    // create circles on the maps representing artists
 
-    // enlarge circles depending on how many bands originated in a city
+    // enlarge circles depending on how many artists originated in a city
 }
 
 
-function updateYear (year) {
-    // add bands from that year
+function updateYear(year) {
+    // add artists from that year
     
-    // change the color of the bands from the previous year
+    // change the color of the artists from the previous year
 }
 
 
-function createSlider (genre) {
-    // create line graph of bands per year to use as slider
+function createSlider(genre) {
+    // create line graph of artists per year to use as slider
     if (!genre) genre = dataSet[0];
 
-    var svg = slider.append("g").attr({
-        transform: "translate(" + margin.left + "," + margin.top + ")"
-    });
+    var innerMargin = {
+        top: 80 - sliderMargin.top,
+        right: 0,
+        bottom: 80 - sliderMargin.bottom,
+        left: 0
+    };
 
-    var x = d3.scale.linear()
-        .range([0, width - 100]);
+    var innerWidth = sliderWidth - innerMargin.left - innerMargin.right;
+    var innerHeight = sliderHeight - innerMargin.bottom - innerMargin.top;
 
-    var y = d3.scale.linear()
-        .range([50, 0]);
+    var xScale = d3.scale.linear()
+        .domain(genre.yearRange)
+        .rangeRound([0, innerWidth])
+        .clamp(true);
 
-    // x.domain(d3.extent(genre.years, function (d) { console.log(d.year); d.year }));
-    // y.domain(d3.extent(genre.years, function (d) { d.bands.length }));
+    var yScale = d3.scale.linear()
+        .domain(genre.artistCountRange)
+        .range([innerHeight, 0]);
 
-    x.domain([1979,2009]);
-    y.domain([0,8]);
-
-    xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom");
+    var xAxis = d3.svg.axis()
+        .scale(xScale)
+        .orient("bottom")
+        .tickFormat(d3.format("d"));
 
     var line = d3.svg.line()
         .interpolate("cardinal")
-        .x( function (d) { console.log(x(d.year)); return x(+d.year); } )
-        .y( function (d) { return y(d.bands.length); } );
+        .x( function (d) { return xScale(+d.year); } )
+        .y( function (d) { return yScale(d.artists.length); } );
 
-    svg.append("g")
+    // innerVis
+
+    var innerVis = sliderVis.append("g").attr({
+        transform: "translate(" + innerMargin.left + "," + innerMargin.top + ")"
+    }).attr("class", "inner-vis");
+
+    innerVis.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + 60 + ")" )
+        .attr("transform", "translate(0," + innerHeight + ")" )
         .call(xAxis);
 
-    svg.selectAll("circle")
+    innerVis.selectAll("circle")
         .data(genre.years)
         .enter()
         .append("circle")
         .attr("r", 2)
-        .attr("cx", function (d) {return x(d.year)})
-        .attr("cy", function (d) { return y(d.bands.length)})
+        .attr("cx", function (d) {return xScale(d.year)})
+        .attr("cy", function (d) { return yScale(d.artists.length)})
         .on("click", updateYear);
 
-    svg.append("path")
+    innerVis.append("path")
         .datum(genre.years)
         .attr("class", "line")
         .attr("d", line);
+
+    // innerVisOverlay
+    var innerVisOverlay = sliderVis.append("g").attr({
+        transform: "translate(" + innerMargin.left + "," + innerMargin.top + ")"
+    }).attr("class", "inner-vis overlay");
+
+    innerVisOverlay.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + innerHeight + ")" )
+        .call(xAxis);
+
+    innerVisOverlay.selectAll("circle")
+        .data(genre.years)
+        .enter()
+        .append("circle")
+        .attr("r", 2)
+        .attr("cx", function (d) {return xScale(d.year)})
+        .attr("cy", function (d) { return yScale(d.artists.length)})
+        .on("click", updateYear);
+
+    innerVisOverlay.append("path")
+        .datum(genre.years)
+        .attr("class", "line")
+        .attr("d", line);
+
+    // mask both to avoid duplicate and consequences on anti-aliasing
+    var innerVisClipPath = sliderVis.append("clipPath")                  //Make a new clipPath
+            .attr("id", "inner-vis-clip-path")           //Assign an ID
+        .append("rect")                     //Within the clipPath, create a new rect
+            .attr("x", 0)                 //Set rect's position and size…
+            .attr("y", -innerMargin.top)
+            .attr("width", sliderWidth)
+            .attr("height", sliderHeight);
+    innerVis.attr("clip-path", "url(#inner-vis-clip-path)") ;
+
+    // mask both to avoid duplicate and consequences on anti-aliasing
+    var innerVisOverlayClipPath = sliderVis.append("clipPath")                  //Make a new clipPath
+            .attr("id", "inner-vis-overlay-clip-path")           //Assign an ID
+        .append("rect")                     //Within the clipPath, create a new rect
+            .attr("x", 0)                 //Set rect's position and size…
+            .attr("y", -innerMargin.top)
+            .attr("width", 0)
+            .attr("height", sliderHeight);
+    innerVisOverlay.attr("clip-path", "url(#inner-vis-overlay-clip-path)") ;
+
+    var brush = d3.svg.brush()
+        .x(xScale)
+        .extent([0, 0])
+        .on("brush", brushed);
+
+    var slide = sliderVis.append("g")
+        .attr("class", "brush")
+        .call(brush);
+
+    slide.selectAll(".extent,.resize")
+        .remove();
+
+    slide.select(".background")
+        .attr("height", sliderHeight);
+
+    var handle = slide.append("g")
+        .attr("class", "handle");
+
+    var handleBar = handle.append("line")
+        .attr("class", "handleBar")
+        .attr({
+            x1: 0,
+            y1: 0,
+            x1: 0,
+            y2: (sliderHeight - 20)
+        });
+
+    var handleLabel = handle.append("text")
+        .text("1994")
+        .attr("transform", "translate(0," + (sliderHeight - 10) + ")");
+
+    // http://bl.ocks.org/mbostock/6452972
+    function brushed() {
+        var value = Math.round(xScale.invert(d3.mouse(this)[0]));
+        brush.extent([value, value]);
+
+        // update slider
+        console.log(value);
+        handle.attr("transform", "translate(" + xScale(value) + ",0)");
+
+        innerVisClipPath
+            .attr("width", sliderWidth - xScale(value))
+            .attr("x", xScale(value));
+
+        innerVisOverlayClipPath
+            .attr("width", xScale(value));
+
+        // do action
+    }
 
 }
 
 function zoom (d) {
     var x, y, scale;
+    console.log(this.getBBox());
 
     if (d && centered !== d) {
         var centroid = path.centroid(d);
         x = centroid[0];
         y = centroid[1];
-        scale = 3;
+
+        var defaultScale = 3,
+            widthScale = width / this.getBBox().width,
+            heightScale = height / this.getBBox().height;
+
+        scale = d3.min([defaultScale, widthScale, heightScale]);
 
         centered = d;
-
-        svg.attr("mask", "url(#Mask)");
     }
 
     else {
@@ -184,8 +304,6 @@ function zoom (d) {
         y = height / 2;
         scale = 1;
         centered = null;
-
-        svg.attr("mask", "null");
     }
  
     vis.selectAll("path")
@@ -198,29 +316,6 @@ function zoom (d) {
             "translate(" + width / 2 + "," + height / 2 
             + ")scale(" + scale  
             + ")translate(" + -x + "," + -y + ")" )
-
-
-
-    // fade edges
-    var defs = svg.append("svg:defs");
-    var gradient = defs.append("svg:radialGradient")
-        .attr("id", "edgeFade");
-    gradient.append("svg:stop")
-        .attr("offset", "0%")
-        .attr("stop-color", "white")
-        .attr("stop-opacity", 1);
-    gradient.append("svg:stop")
-        .attr("offset", "100%")
-        .attr("stop-color", "white")
-        .attr("stop-opacity", 0);
-    var mask = defs.append("svg:mask")
-        .attr("id", "Mask");
-    mask.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", width)
-        .attr("height", height)
-        .attr("fill", "url(#edgeFade)");
 };
 
 // dropdown list

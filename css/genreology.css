@@ -88,22 +88,54 @@ text {
     font-family: Tahoma;
     font-size: small;
 }
-
+/*
 .axis path,
 .axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
-}
+}*/
 
+.axis .tick line {
+    display: none;
+}
+.axis .tick text {
+    font-family: 'CodeProLightDemoRegular';
+    font-size: 20px;
+    fill: #999999;
+}
 .x.axis path {
-  display: none;
+    fill: none;
+    stroke: #999999;
+    stroke-width: 2px;
+}
+#slider .line {
+  fill: none;
+  stroke: #999999;
+  stroke-width: 1.5px;
+}
+#slider circle {
+    fill: #999999;
+}
+#slider .overlay .line,
+#slider .overlay .x.axis path {
+    stroke: #000000;
+}
+#slider .overlay circle,
+#slider .overlay .axis .tick text {
+    fill: #000000;
 }
 
-.line {
-  fill: none;
-  stroke: black;
-  stroke-width: 1.5px;
+.handleBar {
+    stroke-width: 2px;
+    stroke: #000;
+}
+.handle text {
+    font-family: 'CodeProDemoRegular';
+    font-size: 22px;
+    stroke-width: 1px;
+    text-anchor: middle;
+    alignment-baseline: hanging;
 }
 
 .band{
