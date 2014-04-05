@@ -19,7 +19,7 @@ var vis = svg.append("g").attr({
 
 var sliderMargin = {
     top: 30,
-    right: 10,
+    right: 50,
     bottom: 20,
     left: 30
 };
@@ -84,12 +84,14 @@ function loadData () {
             genre.yearRange = d3.extent(genre.years, function(y) {
                 return y.year
             });
-            genre.artistCountRange = d3.extent(genre.years, function(y) {
+            genre.artistCountRange = [0, d3.max(genre.years, function(y) {
                 return y.artists.length;
-            })
+            })]
 
             dataSet.push(genre);
         });
+
+        console.log(dataSet);
 
         loadMenu();
         createSlider();
