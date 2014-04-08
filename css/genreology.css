@@ -98,7 +98,7 @@ text {
 
 .city {
     fill: red;
-    stroke: red;
+    stroke: white;
 }
 
 .city.hidden {
@@ -107,7 +107,7 @@ text {
 
 .city.past {
     fill: pink;
-    stroke: pink;
+    stroke: white;
 }
 
 .axis .tick line {
