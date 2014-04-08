@@ -40,7 +40,6 @@ var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection);
 var centered;
 
-
 function loadStates () {
 
     d3.json("data/us-named.json", function(error, data) {
@@ -131,7 +130,6 @@ function loadArtists(genre) {
         .data(genre.locations).enter()
         .append("svg:circle")
         .attr("class", "city")
-        .attr("r", 5)
         .attr("cx", function (d) { 
             var location = d.details.geometry.location; 
             return projection([location.lng, location.lat])[0]})
@@ -146,7 +144,16 @@ function loadArtists(genre) {
             })
 
             return !(hide);
-        });
+        })
+        .attr("r", function (d) {
+            var count = 0;
+
+            var first = genre.yearRange[0];
+            d.artists.forEach( function (artist) {
+                var start = artist.years_active[0].start;
+                if (start <= first) count++;
+            })
+            return 4 * Math.sqrt(count)});
         
 }
 
@@ -171,6 +178,14 @@ function updateYear(genre, year) {
 
             return !(isCurrentYear)
             })
+        .attr("r", function (d) {
+            var count = 0;
+
+            d.artists.forEach( function (artist) {
+                var start = artist.years_active[0].start;
+                if (start <= year) count++;
+            })
+            return 4 * Math.sqrt(count)});
 
 
     // change the color of the artists from the previous year
