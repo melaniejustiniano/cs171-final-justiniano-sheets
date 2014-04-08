@@ -64,7 +64,7 @@ function loadData () {
     d3.json("data/artistsByGenre.json", function(error, data) {
         console.log(data);
         data.forEach(function (d) {
-            var genre = { genre: d.name, years: [], yearRange: [], artistCountRange: [] },
+            var genre = { genre: d.name, locations: d.locations, years: [], yearRange: [], artistCountRange: [] },
                 years = {};
 
             // TODO: sorted by year already? expedite this? // duplicate data
@@ -100,6 +100,7 @@ function loadData () {
             });
             dataSet.push(genre);
         });
+        console.log(dataSet);
 
         loadMenu();
         createSlider();
