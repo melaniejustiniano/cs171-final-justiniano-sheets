@@ -69,7 +69,6 @@ function loadData () {
             // TODO: sorted by year already? expedite this? // duplicate data
             d.locations.forEach(function(location) {
                 location.artists.forEach(function(artist) {
-                    console.log(artist);
                     var year = artist.years_active[0].start;
                     if (years[year])
                         years[year].push(artist);
@@ -112,23 +111,17 @@ function loadData () {
 // populate drop down menu with genres
 function loadMenu (){
 
-    dataSet.push({genre: "cats"});
-
-    d3.selectAll(".genre-select .dropdown")
+    d3.select("select")
         .on("change", loadArtists)
-    .selectAll("li")
+    .selectAll("option")
         .data(dataSet)
         .enter()
-        .append("li")
+        .append("option")
         .text( function (d) { return d.genre; })
 
 }
 
 function loadArtists(genre) {
-
-    // remove old genres if necessary
-    d3.selectAll(".city").remove();
-
     // initialize artists with first genre
     if (!genre) genre = dataSet[0];
 
@@ -387,7 +380,6 @@ function zoom (d) {
             + ")scale(" + scale  
             + ")translate(" + -x + "," + -y + ")" )
 };
-
 
 // dropdown list
 // TODO update so list is actual list of d3 data bound elements
