@@ -67,7 +67,7 @@ function getGenres() {
 
 function getArtists(genres, numArtists) {
     if (!numArtists)
-        numArtists = 100;
+        numArtists = 300;
     console.log("getArtists() ...");
 
     // Convert to Objects
@@ -80,10 +80,9 @@ function getArtists(genres, numArtists) {
     genres.map(function(g) {
         function callback(data, textStatus, jqXHR) {
             g.artists = g.artists.concat(data.response.artists);
-
-            if (g.artists.length < numArtists) {
+            if (data.response.artists.length >= 100 && g.artists.length < numArtists) {
                 var remaining = numArtists - g.artists.length;
-                var options = { results: (remaining < 100) ? remaining : 100, genre: g.name, artist_location: "country:united+states", bucket: ['artist_location', 'years_active'], sort: 'familiarity-desc', start: g.artists.length };
+                var options = { results: 100, genre: g.name, artist_location: "country:united+states", bucket: ['artist_location', 'years_active'], sort: 'familiarity-desc', start: g.artists.length };
                 makeRequest('artist/search', options, callback, error);              
             }
             else {
@@ -103,8 +102,8 @@ function getArtists(genres, numArtists) {
             alert("Error retrieving artists for " + genre.name + ". Please reload page.")
         }
 
-        var remaining = numArtists - g.artists.length;
-        var options = { results: (remaining < 100) ? remaining : 100, genre: g.name, artist_location: "country:united+states", bucket: ['artist_location', 'years_active'], sort: 'familiarity-desc' };
+        // var remaining = numArtists - g.artists.length;
+        var options = { results: 100, genre: g.name, artist_location: "country:united+states", bucket: ['artist_location', 'years_active'], sort: 'familiarity-desc' };
         makeRequest('artist/search', options, callback, error);
     });
 
