@@ -5,7 +5,7 @@ var margin = {
     left: 10
 };
 
-var width = 900 - margin.left - margin.right;
+var width = 820 - margin.left - margin.right;
 var height = 500 - margin.bottom - margin.top;
 
 var svg = d3.select("#vis").append("svg").attr({
@@ -90,6 +90,7 @@ function loadData () {
 
             dataSet.push(genre);
         });
+        console.log(dataSet);
 
         loadMenu();
         createSlider();
