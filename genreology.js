@@ -146,10 +146,8 @@ function loadArtists(genre) {
             })
 
             return !(hide);
-        })
+        });
         
-
-    // enlarge circles depending on how many artists originated in a city
 }
 
 
@@ -163,9 +161,18 @@ function updateYear(genre, year) {
                 var start = artist.years_active[0].start;
                 return (start <= year); 
             })
-            
+
             return !(hide);  
         })
+        .classed("past", function (d) {
+            var isCurrentYear = d.artists.some(function (artist) {
+                var start = artist.years_active[0].start;
+                return (start == year); })
+
+            return !(isCurrentYear)
+            })
+
+
     // change the color of the artists from the previous year
 }
 

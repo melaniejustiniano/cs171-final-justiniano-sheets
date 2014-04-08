@@ -96,6 +96,20 @@ text {
   shape-rendering: crispEdges;
 }*/
 
+.city {
+    fill: red;
+    stroke: red;
+}
+
+.city.hidden {
+    display: none;
+}
+
+.city.past {
+    fill: pink;
+    stroke: pink;
+}
+
 .axis .tick line {
     display: none;
 }
