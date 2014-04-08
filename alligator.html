@@ -199,37 +199,8 @@ var updateLocations = function(genres) {
         });
 
         console.log(genresUpdate);
+        saveToFile(genresUpdate, "artistsByGenre.json");
     }
-    /*for (var i = 0; i < genres.length; i++) {
-        var artistCounter = 0;
-
-        for (var j = 0; j < genres[i].artists.length; j++) {
-            var loc = genres[i].artists[j].artist_location.location;
-
-            var artist = genres[i].artists[j].name;
-
-            var callback = (function(loc, artist) {
-                return function(data, textStatus, jqXHR) {
-                    // remove non-city results
-                    res = data.results.filter(function(result) {
-                        return result.types.indexOf("locality") != -1;
-                    })
-                    if (res.length >= 1)
-                        genres[i].artists[j].artist_location = res[0]; // take first remaining
-                    else
-                        genres[i].artists.splice(j, 1); // no location, remove
-                }
-            })(i, j);
-
-            function error(jqXHR, textStatus, errorThrown) {
-                alert("Error location data for " + genres[i].artists[j].name + ". Please reload page.")
-            }
-
-            var geoloc = geocode(loc, callback, error);
-        }
-    }*/
-
-    //saveToFile(genres, "artistsByGenre.json");
 }
 
 var saveToFile = function(object, filename){

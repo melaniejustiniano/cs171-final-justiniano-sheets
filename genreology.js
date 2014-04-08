@@ -19,9 +19,9 @@ var vis = svg.append("g").attr({
 
 var sliderMargin = {
     top: 30,
-    right: 10,
+    right: 30,
     bottom: 20,
-    left: 10
+    left: 30
 };
 
 var sliderWidth = 900 - sliderMargin.left - sliderMargin.right;
@@ -62,32 +62,42 @@ var dataSet = [];
 
 function loadData () {
     d3.json("data/artistsByGenre.json", function(error, data) {
+        console.log(data);
         data.forEach(function (d) {
             var genre = { genre: d.name, years: [], yearRange: [], artistCountRange: [] },
                 years = {};
 
-            // TODO: sorted by year already? expedite this?
-            d.artists.forEach(function (artist) {
-                var year = artist.years_active[0].start,
-                    name = artist.name,
-                    location = artist.artist_location.location;
-
-                if (years[year])
-                    years[year].push({ artist : name, location: location });
-                else 
-                    years[year] = [{ artist : name, location: location }];
-            })
+            // TODO: sorted by year already? expedite this? // duplicate data
+            d.locations.forEach(function(location) {
+                location.artists.forEach(function(artist) {
+                    var year = artist.years_active[0].start;
+                    if (years[year])
+                        years[year].push(artist);
+                    else 
+                        years[year] = [artist];                    
+                });
+            });
             for (var year in years)
-                genre.years.push({ year: year, artists: years[year] })
+                genre.years.push({ year: +year, artists: years[year] })
 
             // precompute ranges for domains
             genre.yearRange = d3.extent(genre.years, function(y) {
                 return y.year
             });
-            genre.artistCountRange = d3.extent(genre.years, function(y) {
+            genre.artistCountRange = [0, d3.max(genre.years, function(y) {
                 return y.artists.length;
-            })
+            })];
 
+            // add 0 data for no artists - if wasn't in years, add to genre.years - kind of confusing
+            for (var y = genre.yearRange[0]; y <= genre.yearRange[1]; y++) {
+                if (!years[y]) genre.years.push({ year: y, artists: [] });
+            }
+
+            genre.years.sort(function(a, b) {
+                if (a.year < b.year) return -1;
+                else if (a.year > b.year) return 1;
+                else return 0;
+            });
             dataSet.push(genre);
         });
         console.log(dataSet);
@@ -158,11 +168,10 @@ function createSlider(genre) {
 
     var line = d3.svg.line()
         .interpolate("cardinal")
-        .x( function (d) { return xScale(+d.year); } )
+        .x( function (d) { return xScale(d.year); } )
         .y( function (d) { return yScale(d.artists.length); } );
 
     // innerVis
-
     var innerVis = sliderVis.append("g").attr({
         transform: "translate(" + innerMargin.left + "," + innerMargin.top + ")"
     }).attr("class", "inner-vis");
@@ -258,7 +267,7 @@ function createSlider(genre) {
         });
 
     var handleLabel = handle.append("text")
-        .text("1994")
+        .text(genre.years[0].year)
         .attr("transform", "translate(0," + (sliderHeight - 10) + ")");
 
     // http://bl.ocks.org/mbostock/6452972
@@ -267,7 +276,6 @@ function createSlider(genre) {
         brush.extent([value, value]);
 
         // update slider
-        console.log(value);
         handle.attr("transform", "translate(" + xScale(value) + ",0)");
 
         innerVisClipPath
@@ -276,6 +284,8 @@ function createSlider(genre) {
 
         innerVisOverlayClipPath
             .attr("width", xScale(value));
+
+        handleLabel.text(value);
 
         // do action
     }
