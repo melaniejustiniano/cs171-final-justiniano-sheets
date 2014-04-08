@@ -5,8 +5,8 @@ var margin = {
     left: 10
 };
 
-var width = 820 - margin.left - margin.right;
-var height = 500 - margin.bottom - margin.top;
+var width = 840 - margin.left - margin.right;
+var height = 520 - margin.bottom - margin.top;
 
 var svg = d3.select("#vis").append("svg").attr({
     width: width + margin.left + margin.right,
@@ -100,7 +100,6 @@ function loadData () {
             });
             dataSet.push(genre);
         });
-        console.log(dataSet);
 
         console.log(dataSet);
 
@@ -125,17 +124,48 @@ function loadMenu (){
 
 function loadArtists(genre) {
     // initialize artists with first genre
-    // if (!genre) genre = dataSet[0];
+    if (!genre) genre = dataSet[0];
 
     // create circles on the maps representing artists
+    vis.selectAll(".cities")
+        .data(genre.locations).enter()
+        .append("svg:circle")
+        .attr("class", "city")
+        .attr("r", 5)
+        .attr("cx", function (d) { 
+            var location = d.details.geometry.location; 
+            return projection([location.lng, location.lat])[0]})
+        .attr("cy", function (d) { 
+            var location = d.details.geometry.location; 
+            return projection([location.lng, location.lat])[1]})
+        .classed("hidden", function (d) {
+            var first = genre.yearRange[0];
+            var hide = d.artists.some(function (artist) {
+                var start = artist.years_active[0].start;
+                return (start <= first); 
+            })
+
+            return !(hide);
+        })
+        
 
     // enlarge circles depending on how many artists originated in a city
 }
 
 
-function updateYear(year) {
-    // add artists from that year
-    
+function updateYear(genre, year) {
+
+    var start = genre.yearRange[0];
+
+    vis.selectAll(".city")
+        .classed("hidden", function (d) {
+            var hide = d.artists.some(function (artist) {
+                var start = artist.years_active[0].start;
+                return (start <= year); 
+            })
+            
+            return !(hide);  
+        })
     // change the color of the artists from the previous year
 }
 
@@ -189,8 +219,7 @@ function createSlider(genre) {
         .append("circle")
         .attr("r", 2)
         .attr("cx", function (d) {return xScale(d.year)})
-        .attr("cy", function (d) { return yScale(d.artists.length)})
-        .on("click", updateYear);
+        .attr("cy", function (d) { return yScale(d.artists.length)});
 
     innerVis.append("path")
         .datum(genre.years)
@@ -213,8 +242,7 @@ function createSlider(genre) {
         .append("circle")
         .attr("r", 2)
         .attr("cx", function (d) {return xScale(d.year)})
-        .attr("cy", function (d) { return yScale(d.artists.length)})
-        .on("click", updateYear);
+        .attr("cy", function (d) { return yScale(d.artists.length)});
 
     innerVisOverlay.append("path")
         .datum(genre.years)
@@ -288,7 +316,7 @@ function createSlider(genre) {
         innerVisOverlayClipPath
             .attr("width", xScale(value));
 
-        // do action
+        updateYear(genre, value);
     }
 
 }
@@ -324,7 +352,7 @@ function zoom (d) {
     vis.transition()
         .duration(500)
         .attr("transform",
-            "translate(" + width / 2 + "," + height / 2 
+            "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top)
             + ")scale(" + scale  
             + ")translate(" + -x + "," + -y + ")" )
 };
