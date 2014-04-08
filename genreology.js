@@ -100,7 +100,6 @@ function loadData () {
             });
             dataSet.push(genre);
         });
-        console.log(dataSet);
 
         loadMenu();
         createSlider();
@@ -277,6 +276,7 @@ function createSlider(genre) {
 
         // update slider
         handle.attr("transform", "translate(" + xScale(value) + ",0)");
+        handleLabel.text(value);
 
         innerVisClipPath
             .attr("width", sliderWidth - xScale(value))
@@ -285,8 +285,6 @@ function createSlider(genre) {
         innerVisOverlayClipPath
             .attr("width", xScale(value));
 
-        handleLabel.text(value);
-
         // do action
     }
 
@@ -294,7 +292,6 @@ function createSlider(genre) {
 
 function zoom (d) {
     var x, y, scale;
-    console.log(this.getBBox());
 
     if (d && centered !== d) {
         var centroid = path.centroid(d);
