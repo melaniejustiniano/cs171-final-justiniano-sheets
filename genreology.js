@@ -63,8 +63,8 @@ function loadData () {
     d3.json("data/artistsByGenre.json", function(error, data) {
         console.log(data);
         data.forEach(function (d) {
-            var genre = { genre: d.name, locations: d.locations, years: [], yearRange: [], artistCountRange: [] },
-                years = {};
+            var genre = { genre: d.name, locations: d.locations, years: [], 
+                yearRange: [], artistCountRange: [] }, years = {};
 
             // TODO: sorted by year already? expedite this? // duplicate data
             d.locations.forEach(function(location) {
@@ -136,19 +136,22 @@ function loadArtists(genre) {
         .attr("cy", function (d) { 
             var location = d.details.geometry.location; 
             return projection([location.lng, location.lat])[1]})
+        // place all cities but hide those that aren't in first year
         .classed("hidden", function (d) {
             var first = genre.yearRange[0];
-            var hide = d.artists.some(function (artist) {
+            // if any artist from city started in first year, show city
+            var ifFromFirst = d.artists.some(function (artist) {
                 var start = artist.years_active[0].start;
                 return (start <= first); 
             })
 
-            return !(hide);
+            return !(ifFromFirst);
         })
         .attr("r", function (d) {
-            var count = 0;
-
             var first = genre.yearRange[0];
+
+            // count artists from area in first year and scale radius
+            var count = 0;
             d.artists.forEach( function (artist) {
                 var start = artist.years_active[0].start;
                 if (start <= first) count++;
@@ -160,17 +163,17 @@ function loadArtists(genre) {
 
 function updateYear(genre, year) {
 
-    var start = genre.yearRange[0];
-
     vis.selectAll(".city")
+        // show city if any artist originated before current year
         .classed("hidden", function (d) {
-            var hide = d.artists.some(function (artist) {
+            var ifOriginated = d.artists.some(function (artist) {
                 var start = artist.years_active[0].start;
                 return (start <= year); 
             })
 
-            return !(hide);  
+            return !(ifOriginated);  
         })
+        // mark cities with no artists from that year as in the past
         .classed("past", function (d) {
             var isCurrentYear = d.artists.some(function (artist) {
                 var start = artist.years_active[0].start;
@@ -179,16 +182,14 @@ function updateYear(genre, year) {
             return !(isCurrentYear)
             })
         .attr("r", function (d) {
-            var count = 0;
 
+            // count number of artists in city until that year and scale radius
+            var count = 0;
             d.artists.forEach( function (artist) {
                 var start = artist.years_active[0].start;
                 if (start <= year) count++;
             })
             return 4 * Math.sqrt(count)});
-
-
-    // change the color of the artists from the previous year
 }
 
 
@@ -374,7 +375,8 @@ function zoom (d) {
     vis.transition()
         .duration(500)
         .attr("transform",
-            "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top)
+            "translate(" + (width / 2 + margin.left) 
+            + "," + (height / 2 + margin.top)
             + ")scale(" + scale  
             + ")translate(" + -x + "," + -y + ")" )
 };
