@@ -102,6 +102,8 @@ function loadData () {
         });
         console.log(dataSet);
 
+        console.log(dataSet);
+
         loadMenu();
         createSlider();
         loadArtists();
