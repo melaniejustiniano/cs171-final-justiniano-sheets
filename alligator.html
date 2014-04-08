@@ -149,7 +149,7 @@ var updateLocations = function(genres) {
                 var res = data.results.filter(function(result) {
                     return result.types.indexOf("locality") != -1;
                 });
-                if (res.length >= 1) {
+                if (res.length >= 1 && artist.years_active.length > 0) {
                     artist.artist_location = res[0];
                     artistsUpdate.push(artist);
                 }

@@ -53,6 +53,8 @@ function loadStates () {
             .attr("d", path)
             .attr("class", "state")
             .on("click", zoom);
+
+        loadData();
     });
 
 };
@@ -73,7 +75,7 @@ function loadData () {
                     if (years[year])
                         years[year].push(artist);
                     else 
-                        years[year] = [artist];                    
+                        years[year] = [artist];            
                 });
             });
             for (var year in years)
@@ -424,4 +426,3 @@ function sortList(ul) {
 }
 
 loadStates();
-loadData();
