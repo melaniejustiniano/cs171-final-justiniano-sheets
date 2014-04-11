@@ -97,8 +97,9 @@ text {
 }*/
 
 .city {
-    fill: red;
+    fill: blue;
     stroke: white;
+    opacity: .8;
 }
 
 .city.hidden {
@@ -106,7 +107,7 @@ text {
 }
 
 .city.past {
-    fill: pink;
+    fill: lightblue;
     stroke: white;
 }
 
