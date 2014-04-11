@@ -125,7 +125,7 @@ function loadMenu (){
 
 function loadArtists(genre) {
     // initialize artists with first genre
-    if (!genre) genre = dataSet[0];
+    if (!genre) genre = dataSet[3];
 
     // create circles on the maps representing artists
     vis.selectAll(".cities")
@@ -158,7 +158,7 @@ function loadArtists(genre) {
                 var start = artist.years_active[0].start;
                 if (start <= first) count++;
             })
-            return 4 * Math.sqrt(count)});
+            return 7 * Math.sqrt(count)});
         
 }
 
@@ -191,13 +191,13 @@ function updateYear(genre, year) {
                 var start = artist.years_active[0].start;
                 if (start <= year) count++;
             })
-            return 4 * Math.sqrt(count)});
+            return 7 * Math.sqrt(count)});
 }
 
 
 function createSlider(genre) {
     // create line graph of artists per year to use as slider
-    if (!genre) genre = dataSet[0];
+    if (!genre) genre = dataSet[3];
 
     var innerMargin = {
         top: 80 - sliderMargin.top,
