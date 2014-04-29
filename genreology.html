@@ -18,14 +18,37 @@
 	<div class="genre-select">
 		<span class="selected">Grunge</span>
 		<ul class="dropdown">
-			<li>Rockabilly</li>
-			<li>Classic Rock</li>
-			<li>Fame</li>
 		</ul>
 	</div>
 </div>
 
 <div id="vis"></div>
+<div id="detail-panel">
+	<div id="genre-detail" class="detail-view">
+		<h2 class="name"></h2>
+		<div class="artist-count">Total Artists: <span class="count"></span></div>
+		<div class="popular-cities"></div>
+	</div>
+	<div id="city-detail" class="detail-view" style="display: none;">
+		<h2 class="name"></h2>
+		<div class="artist-count">Total Artists: <span class="count"></span></div>
+		<form name="sort-order">
+			<label><input type="radio" name="order" value="asc"> Ascending</label>
+			<label><input type="radio" name="order" value="desc"> Descending</label>
+		</form>
+		<div class="artists-wrapper">
+			<table class="artists"></table>
+		</div>
+		<div class="fade"></div>
+	</div>
+	<div id="transport">
+		<button id="start">Start</button>
+		<button id="prev">Prev</button>
+		<button id="play">Play</button>
+		<button id="next">Next</button>
+		<button id="end">End</button>
+	</div>
+</div>
 <div id="slider"></div>
 
 <script src="genreology.js"></script>
