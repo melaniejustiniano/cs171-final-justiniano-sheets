@@ -73,13 +73,13 @@ body {
     background-image: url("arrow-up.png");  
 }
 
-.country{
+.country {
     fill: transparent;
     stroke: #999999;
     stroke-width: 2px;
 }
 
-.state.active{
+.state.active {
     fill: #aeeeee;
 }
 
