@@ -153,6 +153,11 @@ text {
     alignment-baseline: hanging;
 }
 
+.band{
+    fill: lightgrey;
+    opacity: .7;
+}
+
 #tooltip {
     position: absolute;
     width: 100px;
