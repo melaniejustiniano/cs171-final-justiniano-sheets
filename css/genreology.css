@@ -63,7 +63,7 @@ body {
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
 }
-.genre-select .dropdown li:hover {
+.genre-select .dropdown li.hover {
     background-color: white;
 }
 .genre-select.active .dropdown {
@@ -73,13 +73,13 @@ body {
     background-image: url("arrow-up.png");  
 }
 
-.country{
+.country {
     fill: transparent;
     stroke: #999999;
     stroke-width: 2px;
 }
 
-.state.active{
+.state.active {
     fill: #aeeeee;
 }
 
@@ -97,7 +97,7 @@ text {
 }*/
 
 .city {
-    fill: blue;
+ /*   fill: blue; */
     stroke: white;
     opacity: .8;
 }
@@ -107,7 +107,7 @@ text {
 }
 
 .city.past {
-    fill: lightblue;
+  /*  fill: lightblue; */
     stroke: white;
 }
 
@@ -141,7 +141,7 @@ text {
     fill: #000000;
 }
 
-.handleBar {
+.handle-bar {
     stroke-width: 2px;
     stroke: #000;
 }
@@ -179,4 +179,84 @@ text {
     font-size: small;
 }
 
+#vis,
+#detail-panel {
+    display: inline-block;
+    vertical-align: middle;
+}
 
+#detail-panel {
+    font-family: 'CodeProLightDemoRegular';
+    overflow: hidden;
+    width: 300px;
+    position: relative;
+    height: 360px;
+}
+
+#city-detail {
+    position: relative;
+    left: 0px;
+}
+
+#detail-panel .title {
+    font-family: 'CodeProDemoRegular';
+}
+
+#detail-panel .artists {
+    list-style: none;
+    text-align: left;
+    table-layout:fixed;
+    width: 100%;
+    border-collapse: collapse;
+    border: 0;
+    margin-bottom: 6px;
+}
+#detail-panel .artists .year {
+    text-align: right;
+}
+
+.artists-wrapper {
+    max-height: 176px;
+    margin-top: 10px;
+    overflow: -moz-scrollbars-vertical;
+    overflow-y: scroll;
+}
+.fade {
+    height: 30px;
+    width: 100%;
+    position: absolute;
+    top: 260px;
+
+    /* "transparent" only works here because == rgba(0,0,0,0) */ 
+    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, transparent),color-stop(1, white));
+    background-image: -webkit-linear-gradient(top, transparent, white);
+    background-image: -moz-linear-gradient(top, transparent, white);
+    background-image: -ms-linear-gradient(top, transparent, white);
+    background-image: -o-linear-gradient(top, transparent, white);
+}
+
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+}
+
+#transport {
+    position: absolute;
+    bottom: 0;
+    left: 16px; /* (300 - 267) / 2 */
+}
+
+#transport button {
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 4px;
+    border-color: #DDDDDD;
+}
+input:focus,
+button:focus { outline: none; }

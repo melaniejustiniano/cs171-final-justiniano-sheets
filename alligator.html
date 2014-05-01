@@ -82,7 +82,7 @@ function getArtists(genres, numArtists) {
             g.artists = g.artists.concat(data.response.artists);
             if (data.response.artists.length >= 100 && g.artists.length < numArtists) {
                 var remaining = numArtists - g.artists.length;
-                var options = { results: 100, genre: g.name, artist_location: "country:united+states", bucket: ['artist_location', 'years_active'], sort: 'familiarity-desc', start: g.artists.length };
+                var options = { results: 100, genre: g.name, artist_location: "country:united+states", bucket: ['artist_location', 'years_active', 'familiarity'], sort: 'familiarity-desc', start: g.artists.length };
                 makeRequest('artist/search', options, callback, error);              
             }
             else {
