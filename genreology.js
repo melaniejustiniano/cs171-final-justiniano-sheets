@@ -17,6 +17,8 @@ var controls = {};
 var updateDuration = 1000,
     updateTransition;
 
+var zoomRadius = 4;
+
 
 /*****************************************************************************
  * DATA LOADERS
@@ -517,15 +519,18 @@ function updatePrimaryYear(year) {
     p.cities.transition().duration(100)
         // count number of artists in city until that year and scale radius
         .attr("r", function(d) {
-            var count = 0,
-                mostRecent = 0;
-            d.artists.forEach(function(artist) {
-                var start = artist.years_active[0].start;
-                if (start <= year) count++;
-                if (start > mostRecent) mostRecent = start;
-            })
-            var multiplier = (mostRecent == year) ? 8 : 7;
-            return multiplier * Math.sqrt(count);
+            if (p.centered) return zoomRadius;
+            else {
+                var count = 0,
+                    mostRecent = 0;
+                d.artists.forEach(function(artist) {
+                    var start = artist.years_active[0].start;
+                    if (start <= year) count++;
+                    if (start > mostRecent) mostRecent = start;
+                })
+                var multiplier = (mostRecent == year) ? 8 : 7;
+                return multiplier * Math.sqrt(count);
+            }
         })
         .attr("fill", function(d) {
             // most recent
@@ -538,15 +543,18 @@ function updatePrimaryYear(year) {
             return p.colorScale(age);
         })
         .each("end", function(d) {
-            d3.select(this).transition().duration(80)
-                .attr("r", function(d) {            
-                    var count = 0;
-                    d.artists.forEach( function(artist) {
-                        var start = artist.years_active[0].start;
-                        if (start <= year) count++;
-                    })
-                    return 7 * Math.sqrt(count);
-                });
+            if (p.centered) return zoomRadius;
+            else {
+                d3.select(this).transition().duration(80)
+                    .attr("r", function(d) {            
+                        var count = 0;
+                        d.artists.forEach( function(artist) {
+                            var start = artist.years_active[0].start;
+                            if (start <= year) count++;
+                        })
+                        return 7 * Math.sqrt(count);
+                    });
+            }
         });
 }
 
@@ -840,12 +848,27 @@ function updatePrimaryZoom(d) {
         scale = d3.min([defaultScale, widthScale, heightScale]);
 
         p.centered = d;
+
+        p.cities.transition().duration(500)
+            .attr("r", zoomRadius); // fixed city size
     }
     else {
         x = p.width / 2 ;
         y = p.height / 2;
         scale = 1;
         p.centered = null;
+
+        var year = s.brush.extent()[0];
+        p.cities.transition().duration(500)
+            .attr("r", function(d) {
+                // count artists from area in first year and scale radius
+                var count = 0;
+                d.artists.forEach( function (artist) {
+                    var start = artist.years_active[0].start;
+                    if (start <= year) count++;
+                })
+                return 7 * Math.sqrt(count);
+            });
     }
  
     p.vis.selectAll("path")
