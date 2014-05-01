@@ -39,7 +39,6 @@ var sliderVis = sliderSvg.append("g").attr({
 var projection = d3.geo.albersUsa().translate([width / 2, height / 2]);
 var path = d3.geo.path().projection(projection);
 var centered;
-var currentYear;
 
 function loadStates () {
 
@@ -66,21 +65,17 @@ function loadData () {
     d3.json("data/artistsByGenre.json", function(error, data) {
         console.log(data);
         data.forEach(function (d) {
-            var genre = { genre: d.name, states: [], locations: d.locations, years: [], 
+            var genre = { genre: d.name, locations: d.locations, years: [], 
                 yearRange: [], artistCountRange: [] }, years = {};
 
             // TODO: sorted by year already? expedite this? // duplicate data
             d.locations.forEach(function(location) {
                 location.artists.forEach(function(artist) {
-                    // organize by years
                     var year = artist.years_active[0].start;
                     if (years[year])
                         years[year].push(artist);
                     else 
-                        years[year] = [artist];
-
-                    // organize by states
-
+                        years[year] = [artist];            
                 });
             });
             for (var year in years)
@@ -112,32 +107,7 @@ function loadData () {
         loadMenu();
         createSlider();
         loadArtists();
-        initControls();
     });
-}
-
-function initControls() {
-
-    
-
-    d3.select("body")
-        .on("keydown", function(e) {
-            switch (d3.event.keyCode) {
-                case KEY.LEFT:
-                    updateYear(currentYear - 1);
-                    break;
-                case KEY.RIGHT:
-                    updateYear(currentYear + 1);
-                    break;
-                case KEY.UP:
-                    break;
-                case KEY.DOWN:
-                    break;
-                case KEY.SPACE:
-                    break;
-                default:
-            }
-        });
 }
 
 // populate drop down menu with genres
@@ -194,7 +164,6 @@ function loadArtists(genre) {
 
 
 function updateYear(year) {
-    currentYear = year;
 
     vis.selectAll(".city")
         // show city if any artist originated before current year
@@ -454,13 +423,5 @@ function sortList(ul) {
             return liTexts[i];
         });
 }
-
-function play (genre) {
-    console.log("Bunnies");
-}
-
-var KEY = { LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, SPACE: 32};
-
-
 
 loadStates();
