@@ -24,9 +24,13 @@
 
 <div id="vis"></div>
 <div id="detail-panel">
+	<div id="viz-info">
+		<span class="bold">Genrealogy</span> was developed by Melanie Justiniano and Matt Sheets to explore the evolution of music genres in the US. <div><a href="#">Read more.</a></div>
+	</div>
 	<div id="genre-detail" class="detail-view">
 		<h2 class="title">Genre Overview</h2>
 		<div class="artist-count">Total Artists in Sample: <span class="count"></span></div>
+		<div class="artist-count current">Pre-<span class="year"></span> Artists: <span class="count"></span></div>
 		<div class="popular-cities"></div>
 	</div>
 	<div id="city-detail" class="detail-view" style="display: none;">
@@ -36,7 +40,7 @@
 		<div class="artists-wrapper">
 			<table class="artists"></table>
 		</div>
-		<div class="fade"></div>
+		<div class="close-city-detail-wrapper"><span id="close-city-detail">Return to Genre Overview</span></div>
 	</div>
 	<div id="transport">
 		<button id="start"><img width="25px" src="css/transport/start.png"></button>
