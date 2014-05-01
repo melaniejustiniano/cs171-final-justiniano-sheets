@@ -441,20 +441,22 @@ function updatePrimaryGenre(genre) {
         .attr("fill", p.colorScale.range()[0])
         .transition()
         .duration(updateDuration / 2)
-        .style("opacity", 0.8);
+        .style("opacity", null);
 
     // On click show detail
-    p.cities.on("click", function(d) {
-        d3.event.stopPropagation();
-        updateCityDetail(d);
-        c.detailPanel.style("display", "inherit");
-        g.detailPanel.style("display", "none");
-    });
+    p.cities
+        .on("click", function(d) {
+            d3.event.stopPropagation();
+            updateCityDetail(d);
+            c.detailPanel.style("display", "inherit");
+            g.detailPanel.style("display", "none");
 
-    d3.select("body").on("click", function(d) {
-        c.detailPanel.style("display", "none");
-        g.detailPanel.style("display", "inherit");
-    });
+            p.cities.classed("selected", false);
+            d3.select(this).classed("selected", true);
+        })
+        .on("mouseover", function(d) {
+
+        });
 }
 
 function updatePrimaryYear(year) {
@@ -666,7 +668,7 @@ function updateGenreDetail(genre) {
         .range([0, g.height])
         .domain([0, genre.topCities[0].artists.length]); // cities are sorted - compare to other genres? */
     g.cities = g.vis.selectAll(".city")
-        .data(genre.topCities);
+            .data(genre.topCities);
 
     var newCities = g.cities.enter().append("g")
         .attr("class", "city");
@@ -689,7 +691,23 @@ function updateGenreDetail(genre) {
         .attr("y", function(d) {
             var dParent = d3.select(this.parentNode)[0][0].__data__;
             return g.height - g.yScale(dParent.artists.length); 
+        })
+        .on("click", function() {
+            var dParent = d3.select(this.parentNode)[0][0].__data__;
+            updateCityDetail(dParent);
+            c.detailPanel.style("display", "inherit");
+            g.detailPanel.style("display", "none");
+
+            p.cities.classed("selected", function(e) { return e.key == dParent.key; });
+        })
+        .on("mouseover", function(d) {
+            var dParent = d3.select(this.parentNode)[0][0].__data__;
+            p.cities.classed("hover", function(e) { return e.key == dParent.key; });
+        })
+        .on("mouseout", function() {
+            p.cities.classed("hover", false);
         });
+
     g.labels = g.cities.selectAll(".label");
 }
 

@@ -101,7 +101,14 @@ text {
     stroke: white;
     opacity: .8;
 }
-
+.city.hover,
+.city:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+.city.selected {
+    fill: lightgreen;
+}
 .city.hidden {
     display: none;
 }
