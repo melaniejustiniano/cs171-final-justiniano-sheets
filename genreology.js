@@ -34,9 +34,9 @@ function loadGenres(callback) {
     d3.json("data/artistsByGenre.json", function(error, loadedData) {
         data.genres = [];
 
-        loadedData.forEach(function (d) {
-            var genre = { genre: d.name, locations: d.locations, years: [], 
-                yearRange: [], artistCountRange: [] }, years = {};
+        loadedData.forEach(function(d) {
+            var genre = { genre: d.name, locations: d.locations, years: [], yearRange: [], artistCountRange: [], topCities: [], totalArtists: 0 }, 
+                years = {};
 
             // TODO: sorted by year already? expedite this? // duplicate data
             d.locations.forEach(function(location) {
@@ -45,8 +45,11 @@ function loadGenres(callback) {
                     if (years[year])
                         years[year].push(artist);
                     else 
-                        years[year] = [artist];            
+                        years[year] = [artist];
                 });
+
+                genre.totalArtists += location.artists.length;
+                genre.topCities.push(location);
             });
             for (var year in years)
                 genre.years.push({ year: +year, artists: years[year] })
@@ -58,6 +61,14 @@ function loadGenres(callback) {
             genre.artistCountRange = [0, d3.max(genre.years, function(y) {
                 return y.artists.length;
             })];
+
+            // precomupute most popular
+            genre.topCities.sort(function(a, b) {
+                if (a.artists.length < b.artists.length) return 1;
+                else if (a.artists.length > b.artists.length) return -1;
+                else return 0;
+            });
+            genre.topCities = genre.topCities.slice(0, 5);
 
             // add 0 data for no artists - if wasn't in years, add to genre.years - kind of confusing
             for (var y = genre.yearRange[0]; y <= genre.yearRange[1]; y++) {
@@ -108,10 +119,10 @@ function initVis(vis, id, width, height, mTop, mRight, mBottom, mLeft) {
 
 // Primary visualization initializer
 function initPrimary() {
-    initVis(p, "#vis", 840, 520, 15, 50, 5, 10);
+    initVis(p, "#vis", 700, 440, 15, 50, 5, 10);
 
     // Create map
-    p.projection = d3.geo.albersUsa().translate([p.width / 2, p.height / 2]);
+    p.projection = d3.geo.albersUsa().translate([p.width / 2, p.height / 2]).scale(900);
     p.path = d3.geo.path().projection(p.projection);
     p.centered;
 
@@ -122,11 +133,15 @@ function initPrimary() {
             .attr("d", p.path)
             .attr("class", "state")
             .on("click", updatePrimaryZoom);
+
+
+    p.colorScale = d3.scale.linear()
+        .range(["blue", "lightblue"]);
 }
 
 // Slider initializer
 function initSlider() {
-    initVis(s, "#slider", 900, 200, 30, 30, 20, 30);
+    initVis(s, "#slider", 900, 176, 30, 0, 20, 30);
 
     s.inner = {};
     s.inner.margin = { top: 80 - s.margin.top, right: 0, bottom: 80 - s.margin.bottom, left: 0 };
@@ -189,13 +204,24 @@ function initSlider() {
 
 // Genre detail visualization initializer
 function initGenreDetail() {
-    initVis(g, "#genre-detail", 300, 360, 20, 20, 20, 20);
+    initVis(g, "#genre-detail", 300, 220, 20, 20, 20, 20);
+
+    g.detailPanel = d3.select("#genre-detail");
+    g.name = g.detailPanel.select(".name");
+    g.artistCount = g.detailPanel.select(".artist-count .count");
+
+    var max = d3.max(data.genres, function(genre) {
+        return genre.topCities[0].artists.length;
+    });
+    g.yScale = d3.scale.linear()
+        .range([0, g.height])
+        .domain([0, max]);
 }
 
 // City detail table initializer
 function initCityDetail() {
     c.detailPanel = d3.select("#city-detail");
-    c.name = c.detailPanel.select(".city-name");
+    c.name = c.detailPanel.select(".name");
     c.artistCount = c.detailPanel.select(".artist-count .count");
     c.artistsTable = c.detailPanel.select(".artists");
 }
@@ -207,47 +233,53 @@ function initCityDetail() {
 // Create dropdown menu
 function initGenreMenu(d) {    
     // dropdown list
-    var genreSelect = d3.select(".genre-select");
-    var genreSelected = genreSelect.select(".selected")
+    controls.genreSelect = d3.select(".genre-select");
+    controls.genreSelected = controls.genreSelect.select(".selected")
         .text(d.genre);
-    var dropdown = genreSelect.select(".dropdown");
+    controls.dropdown = controls.genreSelect.select(".dropdown");
 
-    var dropdownDataSet = data.genres.filter(function(e) { return d != e; });
+    controls.dropdownDataSet = data.genres.filter(function(e) { return d != e; });
+    controls.hoveredIndex = 0; // only used for 
 
-    dropdown.selectAll("li")
-            .data(dropdownDataSet)
+    controls.dropdownItems = controls.dropdown.selectAll("li")
+            .data(controls.dropdownDataSet)
         .enter().append("li")
             .text(function(d) { return d.genre; })
+            .on("mouseover", function(d, i) {
+                controls.hoveredIndex = i;
+
+                // update this and others
+                controls.dropdownItems.classed("hover", function(e, j) {
+                    return j == controls.hoveredIndex;
+                });
+            })
             .on("click", function(d) {
                 d3.event.stopPropagation();
-                
-                genreSelected.text(d.genre);
-
-                dropdownDataSet = data.genres.filter(function(e) { return d != e; });
-                sortGenres();
-
-                dropdown.selectAll("li")
-                    .data(dropdownDataSet)
-                    .text(function(d) { return d.genre; });
-
+            
                 updateGenre(d);
-
-                d3.select(".genre-select").classed('active', false);
             });
 
-    d3.select(".genre-select").on("click", function() {
+    controls.genreSelect.on("click", function() {
         d3.event.stopPropagation();
         d3.select(this).classed('active', !d3.select(this).classed('active'));
+
+        controls.dropdownItems.classed("hover", function(e, j) {
+            return j == controls.hoveredIndex;
+        });
     });
 
+    // TODO - Move outside - use prevent default on all non things
     d3.select("body").on("click", function() {
-        d3.select(".genre-select").classed('active', false);
+        controls.genreSelect.classed('active', false);
+
+        c.detailPanel.style("display", "none");
+        g.detailPanel.style("display", "inherit");
     });
 }
 
 // Initialize Controls
 function initKeyboardControls() {
-    var KEY = { SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40 };
+    var KEY = { SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, ENTER: 13 };
 
     d3.select("body").on("keydown", function() {
         d3.event.preventDefault();
@@ -264,12 +296,30 @@ function initKeyboardControls() {
                 if (++val <= max && !controls.playing) updateYear(val);
                 break;
             case KEY.UP:
+                if (!controls.genreSelect.classed('active'))
+                    controls.genreSelect.classed('active', true);
+                else if (controls.hoveredIndex > 0) 
+                    --controls.hoveredIndex;
+                controls.dropdownItems.classed("hover", function(d, i) {
+                    return i == controls.hoveredIndex;
+                });
                 break;
             case KEY.DOWN:
+                if (!controls.genreSelect.classed('active'))
+                    controls.genreSelect.classed('active', true);
+                else if (controls.hoveredIndex < controls.dropdownDataSet.length - 1)
+                    ++controls.hoveredIndex;
+                controls.dropdownItems.classed("hover", function(d, i) {
+                    return i == controls.hoveredIndex;
+                });                
                 break;
             case KEY.SPACE:
                 play();
-                break
+                break;
+            case KEY.ENTER:
+                if (controls.genreSelect.classed('active'))
+                    updateGenre(controls.dropdownDataSet[controls.hoveredIndex]);
+                break;
         }
     });
 }
@@ -355,6 +405,8 @@ function updatePrimaryGenre(genre) {
     p.cities.enter().append("svg:circle")
         .attr("class", "city");
 
+    p.colorScale.domain([0, genre.yearRange[1] - genre.yearRange[0]]);
+
     // Update all circles appropriately
     p.cities
         .style("opacity", 0)
@@ -375,7 +427,7 @@ function updatePrimaryGenre(genre) {
 
             return !(ifFromFirst);
         })
-        .attr("r", function (d) {
+        .attr("r", function(d) {
             var first = genre.yearRange[0];
 
             // count artists from area in first year and scale radius
@@ -384,22 +436,32 @@ function updatePrimaryGenre(genre) {
                 var start = artist.years_active[0].start;
                 if (start <= first) count++;
             })
-            return 7 * Math.sqrt(count)})
+            return 7 * Math.sqrt(count);
+        })
+        .attr("fill", p.colorScale.range()[0])
         .transition()
         .duration(updateDuration / 2)
-        .style("opacity", 1);
+        .style("opacity", 0.8);
 
     // On click show detail
     p.cities.on("click", function(d) {
+        d3.event.stopPropagation();
         updateCityDetail(d);
+        c.detailPanel.style("display", "inherit");
+        g.detailPanel.style("display", "none");
+    });
+
+    d3.select("body").on("click", function(d) {
+        c.detailPanel.style("display", "none");
+        g.detailPanel.style("display", "inherit");
     });
 }
 
 function updatePrimaryYear(year) {
     p.cities
         // show city if any artist originated before current year
-        .classed("hidden", function (d) {
-            var ifOriginated = d.artists.some(function (artist) {
+        .classed("hidden", function(d) {
+            var ifOriginated = d.artists.some(function(artist) {
                 var start = artist.years_active[0].start;
                 return (start <= year); 
             })
@@ -407,21 +469,31 @@ function updatePrimaryYear(year) {
             return !(ifOriginated);  
         })
         // mark cities with no artists from that year as in the past
-        .classed("past", function (d) {
-            var isCurrentYear = d.artists.some(function (artist) {
+        .classed("past", function(d) {
+            var isCurrentYear = d.artists.some(function(artist) {
                 var start = artist.years_active[0].start;
                 return (start == year); })
 
             return !(isCurrentYear)
         })
         // count number of artists in city until that year and scale radius
-        .attr("r", function (d) {            
+        .attr("r", function(d) {            
             var count = 0;
-            d.artists.forEach( function (artist) {
+            d.artists.forEach( function(artist) {
                 var start = artist.years_active[0].start;
                 if (start <= year) count++;
             })
             return 7 * Math.sqrt(count);
+        })
+        .attr("fill", function(d) {
+            // most recent
+            var lastUpdate = 0;
+            d.artists.forEach( function(artist) {
+                var start = artist.years_active[0].start;
+                if (start <= year && start > lastUpdate) lastUpdate = start;
+            })
+            var age = year - lastUpdate;
+            return p.colorScale(age);
         });
 }
 
@@ -587,7 +659,38 @@ function updateSliderYear(year) {
 }
 
 function updateGenreDetail(genre) {
-    console.log(genre);
+    g.name.text(genre.genre);
+    g.artistCount.text(genre.totalArtists);
+
+    /* g.yScale = d3.scale.linear()
+        .range([0, g.height])
+        .domain([0, genre.topCities[0].artists.length]); // cities are sorted - compare to other genres? */
+    g.cities = g.vis.selectAll(".city")
+        .data(genre.topCities);
+
+    var newCities = g.cities.enter().append("g")
+        .attr("class", "city");
+
+    newCities.append("rect")
+        .attr("class", "bar");
+    newCities.append("text")
+        .attr("class", "label");
+
+    var barWidth = g.width / genre.topCities.length;
+    g.cities.attr("transform", function(d, i) { return "translate(" + (i * barWidth) + ",0)"; });
+
+    g.bars = g.cities.selectAll(".bar")
+        .attr("width", barWidth)
+        .attr("height", function(d) {
+            var dParent = d3.select(this.parentNode)[0][0].__data__;
+            return g.yScale(dParent.artists.length);
+        })
+        .attr("x", 0)
+        .attr("y", function(d) {
+            var dParent = d3.select(this.parentNode)[0][0].__data__;
+            return g.height - g.yScale(dParent.artists.length); 
+        });
+    g.labels = g.cities.selectAll(".label");
 }
 
 function updateCityDetail(city) {
@@ -652,6 +755,18 @@ function updatePrimaryZoom(d) {
             + ")translate(" + -x + "," + -y + ")" )
 };
 
+function updateGenreMenu(genre) {
+    controls.genreSelected.text(genre.genre);
+
+    controls.dropdownDataSet = data.genres.filter(function(e) { return genre != e; });
+    sortGenres();
+
+    controls.dropdown.selectAll("li")
+        .data(controls.dropdownDataSet)
+        .text(function(d) { return d.genre; });
+    controls.genreSelect.classed('active', false);
+}
+
 
 /*****************************************************************************
  * GLOBAL UPDATERS
@@ -661,6 +776,7 @@ function updateGenre(genre) {
     updatePrimaryGenre(genre);
     updateSliderGenre(genre);
     updateGenreDetail(genre);
+    updateGenreMenu(genre);
 }
 
 function updateYear(year) {

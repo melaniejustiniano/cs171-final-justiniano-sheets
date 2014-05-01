@@ -63,7 +63,7 @@ body {
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
 }
-.genre-select .dropdown li:hover {
+.genre-select .dropdown li.hover {
     background-color: white;
 }
 .genre-select.active .dropdown {
@@ -97,7 +97,7 @@ text {
 }*/
 
 .city {
-    fill: blue;
+ /*   fill: blue; */
     stroke: white;
     opacity: .8;
 }
@@ -107,7 +107,7 @@ text {
 }
 
 .city.past {
-    fill: lightblue;
+  /*  fill: lightblue; */
     stroke: white;
 }
 
@@ -198,7 +198,7 @@ text {
     left: 0px;
 }
 
-#detail-panel #city-name {
+#detail-panel .title {
     font-family: 'CodeProDemoRegular';
 }
 
@@ -216,7 +216,8 @@ text {
 }
 
 .artists-wrapper {
-    max-height: 200px;
+    max-height: 176px;
+    margin-top: 10px;
     overflow: -moz-scrollbars-vertical;
     overflow-y: scroll;
 }
@@ -224,7 +225,7 @@ text {
     height: 30px;
     width: 100%;
     position: absolute;
-    top: 256px;
+    top: 260px;
 
     /* "transparent" only works here because == rgba(0,0,0,0) */ 
     background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, transparent),color-stop(1, white));
