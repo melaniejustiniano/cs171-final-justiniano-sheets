@@ -41,7 +41,6 @@ function loadGenres(callback) {
             var genre = { genre: d.name, locations: d.locations, years: [], yearRange: [], artistCountRange: [], topCities: [], totalArtists: 0 }, 
                 years = {};
 
-            // TODO: sorted by year already? expedite this? // duplicate data
             genre.locations.forEach(function(location) {
                 var start = location.artists[0].years_active[0].start;
                 location.artists.forEach(function(artist) {
@@ -300,7 +299,6 @@ function initGenreMenu(d) {
         });
     });
 
-    // TODO - Move outside - use prevent default on all non things
     d3.select("body").on("click", function() {
         controls.genreSelect.classed('active', false);
     });
@@ -767,7 +765,6 @@ function updateGenreDetailYear(year) {
     }
 }
 
-// TODO close when new genre selected??
 function updateCityDetail(city) {
     c.city = city;
     c.name.text(city.key);
