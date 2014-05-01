@@ -31,22 +31,19 @@
 	</div>
 	<div id="city-detail" class="detail-view" style="display: none;">
 		<h2 class="title"><span class="name"></span></h2>
-		<div class="artist-count">Total Artists: <span class="count"></span></div>
-		<form name="sort-order">
-			<label><input type="radio" name="order" value="asc"> Ascending</label>
-			<label><input type="radio" name="order" value="desc"> Descending</label>
-		</form>
+		<div class="artist-count total">Total Artists: <span class="count"></span></div>
+		<div class="artist-count current">Pre-<span class="year"></span> Artists: <span class="count"></span></div>
 		<div class="artists-wrapper">
 			<table class="artists"></table>
 		</div>
 		<div class="fade"></div>
 	</div>
 	<div id="transport">
-		<button id="start">Start</button>
-		<button id="prev">Prev</button>
-		<button id="play">Play</button>
-		<button id="next">Next</button>
-		<button id="end">End</button>
+		<button id="start"><img width="25px" src="css/transport/start.png"></button>
+		<button id="prev"><img width="25px" src="css/transport/prev.png"></button>
+		<button id="play"><img width="25px" src="css/transport/play.png"></button>
+		<button id="next"><img width="25px" src="css/transport/next.png"></button>
+		<button id="end"><img width="25px" src="css/transport/end.png"></button>
 	</div>
 </div>
 <div id="slider"></div>

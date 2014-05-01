@@ -14,7 +14,8 @@ var p = {}, // primary visualization
 var controls = {};
 
 // Globals
-var updateDuration = 1000;
+var updateDuration = 1000,
+    updateTransition;
 
 
 /*****************************************************************************
@@ -39,17 +40,35 @@ function loadGenres(callback) {
                 years = {};
 
             // TODO: sorted by year already? expedite this? // duplicate data
-            d.locations.forEach(function(location) {
+            genre.locations.forEach(function(location) {
+                var start = location.artists[0].years_active[0].start;
                 location.artists.forEach(function(artist) {
                     var year = artist.years_active[0].start;
                     if (years[year])
                         years[year].push(artist);
                     else 
                         years[year] = [artist];
+
+                    if (year < start) start = year;
                 });
 
+                location.start = start;
                 genre.totalArtists += location.artists.length;
                 genre.topCities.push(location);
+
+                // TODO: map names - done on data processing end - is data specific though so update? not automated
+                location.abbrev = location.details.address_components[0].short_name;
+                /*switch (toUpperCase(location.abbrev)) {
+                    case "LOS ANGELES":
+                        location.abbrev = "L.A.";
+                        break;
+                    case "SF":
+                        location.abbrev = "S.F.";
+                        break;
+                    case "NEW YORK":
+                        location.abbrev = "N.Y.C.";
+                        break;
+                }*/
             });
             for (var year in years)
                 genre.years.push({ year: +year, artists: years[year] })
@@ -96,6 +115,12 @@ function sortGenres() {
     });
 }
 
+function locationCompare(a, b) {
+    if (a.start < b.start) return -1;
+    else if (a.start > b.start) return 1;
+    else return 0;
+}
+
 /*****************************************************************************
  * VISUALIZATION INITIALIZERS
  *****************************************************************************/
@@ -136,7 +161,7 @@ function initPrimary() {
 
 
     p.colorScale = d3.scale.linear()
-        .range(["blue", "lightblue"]);
+        .range(["#2F0f71", "#956BD6"]);
 }
 
 // Slider initializer
@@ -144,7 +169,7 @@ function initSlider() {
     initVis(s, "#slider", 900, 176, 30, 0, 20, 30);
 
     s.inner = {};
-    s.inner.margin = { top: 80 - s.margin.top, right: 0, bottom: 80 - s.margin.bottom, left: 0 };
+    s.inner.margin = { top: 50 - s.margin.top, right: 0, bottom: 80 - s.margin.bottom, left: 0 };
     s.inner.width = s.width - s.inner.margin.left - s.inner.margin.right;
     s.inner.height = s.height - s.inner.margin.bottom - s.inner.margin.top;
 
@@ -222,7 +247,9 @@ function initGenreDetail() {
 function initCityDetail() {
     c.detailPanel = d3.select("#city-detail");
     c.name = c.detailPanel.select(".name");
-    c.artistCount = c.detailPanel.select(".artist-count .count");
+    c.artistCount = c.detailPanel.select(".artist-count.total .count");
+    c.currentAristCount = c.detailPanel.select(".artist-count.current .count");
+    c.currentAristCountYear = c.detailPanel.select(".artist-count.current .year");
     c.artistsTable = c.detailPanel.select(".artists");
 }
 
@@ -271,9 +298,6 @@ function initGenreMenu(d) {
     // TODO - Move outside - use prevent default on all non things
     d3.select("body").on("click", function() {
         controls.genreSelect.classed('active', false);
-
-        c.detailPanel.style("display", "none");
-        g.detailPanel.style("display", "inherit");
     });
 }
 
@@ -362,7 +386,7 @@ function play() {
 
         if (val >= max) updateYear(min);
 
-        d3.select("#play").text('Pause');  // change the button label to stop
+        d3.select("#play img").attr("src",'css/transport/pause.png');  // change the button label to stop
         controls.playing = true;   // change the status of the animation
 
         controls.timer = setInterval(function() {   // set a JS interval
@@ -372,14 +396,14 @@ function play() {
             }
             else {
                 clearInterval(controls.timer);   // stop the animation by clearing the interval
-                d3.select("#play").text('Play');   // change the button label to play
+                d3.select("#play img").attr("src", 'css/transport/play.png');   // change the button label to play
                 controls.playing = false;   // change the status again
             }
         }, 100);
     } 
     else {    // else if is currently playing
         clearInterval(controls.timer);   // stop the animation by clearing the interval
-        d3.select("#play").text('Play');   // change the button label to play
+        d3.select("#play img").attr("src",'css/transport/play.png');   // change the button label to play
         controls.playing = false;   // change the status again
     } 
 }
@@ -390,6 +414,7 @@ function play() {
 
 function updatePrimaryGenre(genre) {
     // Create circles on the maps representing artists
+    genre.locations.sort(locationCompare);
     p.cities = p.vis.selectAll(".city")
         .data(genre.locations);
 
@@ -405,7 +430,7 @@ function updatePrimaryGenre(genre) {
     p.cities.enter().append("svg:circle")
         .attr("class", "city");
 
-    p.colorScale.domain([0, genre.yearRange[1] - genre.yearRange[0]]);
+    p.colorScale.domain([0, (genre.yearRange[1] - genre.yearRange[0]) / 2]);
 
     // Update all circles appropriately
     p.cities
@@ -446,15 +471,25 @@ function updatePrimaryGenre(genre) {
     // On click show detail
     p.cities
         .on("click", function(d) {
-            d3.event.stopPropagation();
-            updateCityDetail(d);
-            c.detailPanel.style("display", "inherit");
-            g.detailPanel.style("display", "none");
+            if (c.detailPanel.style("display") == "none" || c.city != d) {
+                d3.event.stopPropagation();
+                updateCityDetail(d);
+                c.detailPanel.style("display", "inherit");
+                g.detailPanel.style("display", "none");
 
-            p.cities.classed("selected", false);
-            d3.select(this).classed("selected", true);
+                p.cities.classed("selected", false);
+                d3.select(this).classed("selected", true);
+            }
+            else {       
+                c.detailPanel.style("display", "none");
+                g.detailPanel.style("display", "inherit");
+                p.cities.classed("selected", false);
+            }
         })
         .on("mouseover", function(d) {
+
+        })
+        .on("mouseout", function() {
 
         });
 }
@@ -477,15 +512,20 @@ function updatePrimaryYear(year) {
                 return (start == year); })
 
             return !(isCurrentYear)
-        })
+        });
+
+    p.cities.transition().duration(100)
         // count number of artists in city until that year and scale radius
-        .attr("r", function(d) {            
-            var count = 0;
-            d.artists.forEach( function(artist) {
+        .attr("r", function(d) {
+            var count = 0,
+                mostRecent = 0;
+            d.artists.forEach(function(artist) {
                 var start = artist.years_active[0].start;
                 if (start <= year) count++;
+                if (start > mostRecent) mostRecent = start;
             })
-            return 7 * Math.sqrt(count);
+            var multiplier = (mostRecent == year) ? 8 : 7;
+            return multiplier * Math.sqrt(count);
         })
         .attr("fill", function(d) {
             // most recent
@@ -496,6 +536,17 @@ function updatePrimaryYear(year) {
             })
             var age = year - lastUpdate;
             return p.colorScale(age);
+        })
+        .each("end", function(d) {
+            d3.select(this).transition().duration(80)
+                .attr("r", function(d) {            
+                    var count = 0;
+                    d.artists.forEach( function(artist) {
+                        var start = artist.years_active[0].start;
+                        if (start <= year) count++;
+                    })
+                    return 7 * Math.sqrt(count);
+                });
         });
 }
 
@@ -527,11 +578,8 @@ function updateSliderGenre(genre) {
 
     s.inner.circles = s.inner.vis.selectAll("circle").data(genre.years);
     s.inner.overlayCircles = s.inner.overlay.selectAll("circle").data(genre.years);
-        
-    var transition = d3.transition()
-        .duration(updateDuration);
 
-    transition.each(function() {
+    updateTransition.each(function() {
         // move handle
         s.handle.transition()
             .attr("transform", "translate(0,0)");
@@ -622,7 +670,7 @@ function updateSliderGenre(genre) {
         sliderVis.selectAll(".line").style("opacity", 0);       */ 
     });
 
-    transition.transition().each(function() {
+    updateTransition.transition().each(function() {
         // fade in date
         s.handleLabel.transition()
             .style("opacity", 1);
@@ -664,9 +712,6 @@ function updateGenreDetail(genre) {
     g.name.text(genre.genre);
     g.artistCount.text(genre.totalArtists);
 
-    /* g.yScale = d3.scale.linear()
-        .range([0, g.height])
-        .domain([0, genre.topCities[0].artists.length]); // cities are sorted - compare to other genres? */
     g.cities = g.vis.selectAll(".city")
             .data(genre.topCities);
 
@@ -674,7 +719,9 @@ function updateGenreDetail(genre) {
         .attr("class", "city");
 
     newCities.append("rect")
-        .attr("class", "bar");
+        .attr("class", "bar")
+        .attr("y", g.height)
+        .attr("height", 0);
     newCities.append("text")
         .attr("class", "label");
 
@@ -683,16 +730,10 @@ function updateGenreDetail(genre) {
 
     g.bars = g.cities.selectAll(".bar")
         .attr("width", barWidth)
-        .attr("height", function(d) {
-            var dParent = d3.select(this.parentNode)[0][0].__data__;
-            return g.yScale(dParent.artists.length);
-        })
         .attr("x", 0)
-        .attr("y", function(d) {
-            var dParent = d3.select(this.parentNode)[0][0].__data__;
-            return g.height - g.yScale(dParent.artists.length); 
-        })
         .on("click", function() {
+            d3.event.stopPropagation();
+
             var dParent = d3.select(this.parentNode)[0][0].__data__;
             updateCityDetail(dParent);
             c.detailPanel.style("display", "inherit");
@@ -707,13 +748,45 @@ function updateGenreDetail(genre) {
         .on("mouseout", function() {
             p.cities.classed("hover", false);
         });
+        
+    g.labels = g.cities.selectAll(".label")
+        .text(function(d) {
+            var dParent = d3.select(this.parentNode)[0][0].__data__;
+            return dParent.details.address_components[0].short_name;
+        })
+        .attr("x", barWidth / 2)
+        .style("font-size", null)
+        .attr("y", 0);
+    wrap(g.labels, barWidth);
 
-    g.labels = g.cities.selectAll(".label");
+    updateTransition.each(function() {
+        g.bars.transition().duration(updateDuration)
+            .attr("height", function(d) {
+                var dParent = d3.select(this.parentNode)[0][0].__data__;
+                return g.yScale(dParent.artists.length);
+            })
+            .attr("y", function(d) {
+                var dParent = d3.select(this.parentNode)[0][0].__data__;
+                return g.height - g.yScale(dParent.artists.length); 
+            });
+        g.labels.transition().duration(updateDuration)
+            .attr("transform", function(d) {
+                var dParent = d3.select(this.parentNode)[0][0].__data__;
+                return "translate(0," + (g.height - g.yScale(dParent.artists.length) - 4) + ")";
+            });       
+    });
+         
 }
 
+// TODO close when new genre selected??
 function updateCityDetail(city) {
+    c.city = city;
     c.name.text(city.key);
     c.artistCount.text(city.artists.length);
+
+    var currentYear = s.brush.extent()[0];
+    c.currentAristCount.text(city.artists.filter(function(d) { return d.years_active[0].start < currentYear; }).length);
+    c.currentAristCountYear.text(currentYear);
 
     city.artists.sort(function(a, b) {
         if (a.years_active[0].start < b.years_active[0].start) return -1;
@@ -728,13 +801,28 @@ function updateCityDetail(city) {
         .remove();
 
     c.artistRows = c.artists.enter().append("tr")
-        .attr("class", "artist");
+        .attr("class", "artist")
+        .classed("current", function(d) {
+            return d.years_active[0].start <= currentYear;
+        });
     c.artistRows.append("td")
         .attr("class", "name")
         .text(function(d) { return d.name; });
     c.artistRows.append("td")
         .attr("class", "year")
         .text(function(d) { return d.years_active[0].start; });
+}
+
+function updateCityDetailYear(year) {
+    if (c.detailPanel.style("display") != "none") {
+        c.currentAristCount.text(c.city.artists.filter(function(d) { return d.years_active[0].start < year; }).length);
+        c.currentAristCountYear.text(year);
+
+        c.artistRows
+            .classed("current", function(d) {
+                return d.years_active[0].start <= year;
+            });
+    }
 }
 
 function updatePrimaryZoom(d) {
@@ -787,10 +875,65 @@ function updateGenreMenu(genre) {
 
 
 /*****************************************************************************
+ * HELPERS
+ *****************************************************************************/
+
+// http://bl.ocks.org/mbostock/7555321
+function wrap(text, width) {
+    text.each(function() {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            x = text.attr("x"),
+            tspan = text.text(null).append("tspan").attr("x", x).attr("y", y);
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + "em").text(word);
+            }
+        }
+        text.selectAll("tspan")
+            .attr("dy", function() {
+                var dy = 0;
+                if (d3.select(this).attr("dy")) {
+                    var dyString = d3.select(this).attr("dy");
+                    dy = +dyString.slice(0, dyString.length - 2);
+                }
+                return (dy - lineNumber * lineHeight) + "em";
+            });
+
+        text.selectAll("tspan").each(function() {
+            var tspan = d3.select(this),
+                tspanWidth = tspan.node().getComputedTextLength();
+            do {
+                if (tspanWidth > width) {
+                    var parent = d3.select(tspan[0][0].parentNode),
+                        fontSizeString = parent.style("font-size"),
+                        fontSize = fontSizeString.slice(0, fontSizeString.length - 2);
+
+                    parent.style("font-size", (fontSize - 1) + "px");
+                    tspanWidth = tspan.node().getComputedTextLength();
+                }
+            } while (tspanWidth > width);
+        });
+    });
+}
+
+
+/*****************************************************************************
  * GLOBAL UPDATERS
  *****************************************************************************/
 
 function updateGenre(genre) {
+    updateTransition = d3.transition().duration(updateDuration);
     updatePrimaryGenre(genre);
     updateSliderGenre(genre);
     updateGenreDetail(genre);
@@ -800,6 +943,7 @@ function updateGenre(genre) {
 function updateYear(year) {
     updatePrimaryYear(year);
     updateSliderYear(year);
+    updateCityDetailYear(year);
 }
 
 /*****************************************************************************
@@ -824,23 +968,22 @@ function init() {
 
         // Primary Visualization
         initPrimary();
-        updatePrimaryGenre(genre);
 
         // Slider
         initSlider();
-        updateSliderGenre(genre);
 
         // Detail Visualization
         initGenreDetail();
-        updateGenreDetail(genre);
         initCityDetail();
+
+        // Menu
+        initGenreMenu(genre);
+
+        updateGenre(genre);
 
         // Controls
         initKeyboardControls();
         initTransportControls();
-
-        // Menu
-        initGenreMenu(genre);
     });
 }
 
